@@ -9,6 +9,7 @@ Dataset clouds;
 Dataset smileys;
 
 ArrayList<Data> trainingData;
+ArrayList<Data> testingData;
 
 static final int CAT = 0;
 static final int CLOUD = 1;
@@ -27,10 +28,14 @@ void setup() {
   smileys = new Dataset(800, 200, smileysData, SMILEY);
 
   prepareTrainingData();
+  prepareTestingData();
 
   nn = new NeuralNetwork(784, 64, 3);
 
-  trainMultipleEpochs(1);
+  trainMultipleEpochs(5);
+  double percentage = testAll();
+
+  println("% correct: " + percentage);
 
   System.exit(0);
 }
@@ -53,9 +58,22 @@ void prepareTrainingData() {
   Collections.shuffle(trainingData);
 }
 
+void prepareTestingData() {
+  testingData  = new ArrayList<Data>();
+
+  for (int i = 0; i < 200; i++) {
+    testingData.add(cats.testingData[i]);
+    testingData.add(clouds.testingData[i]);
+    testingData.add(smileys.testingData[i]);
+  }
+
+  Collections.shuffle(testingData);
+}
+
 void trainMultipleEpochs(int amount) {
   for (int i = 0; i < amount; i++) {
     trainOneEpoch();
+    println("Epoch: " + (i + 1));
   }
 }
 
@@ -69,5 +87,30 @@ void trainOneEpoch() {
 
     nn.train(inputs, targets);
   }
-  println("Training finished");
+}
+
+double testAll() {
+  double correctGuesses = 0;
+
+  for (int i = 0; i < testingData.size(); i++) {
+    double[] inputs = new double[784];
+    for (int j = 0; j < inputs.length; j++) {
+      inputs[j] = ((double)(trainingData.get(i).data[j] & 0xFF)) / 255;
+    }
+
+    double[] guess = nn.guess(inputs);
+    ArrayList<Double> result = new ArrayList<Double>();
+    for (int j = 0; j < guess.length; j++){
+      result.add(guess[j]);
+    }
+    
+    double m = Collections.max(result);
+    int index = result.indexOf(m);
+    
+    if(index == trainingData.get(i).label){
+      correctGuesses ++;
+    }
+  }
+  
+  return (correctGuesses / testingData.size()) * 100;
 }
