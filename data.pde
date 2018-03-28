@@ -1,7 +1,7 @@
 class Data{
   
   byte[] data;
-  int[] target = {0,0,0};
+  double[] target = {0,0,0};
   
   Data(byte[] data, int label){
     target[label] = 1;
