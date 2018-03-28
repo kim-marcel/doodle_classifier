@@ -1,4 +1,5 @@
 import java.util.Collections;
+import java.util.*;
 
 byte[] catsData;
 byte[] cloudsData;
@@ -15,11 +16,16 @@ static final int CAT = 0;
 static final int CLOUD = 1;
 static final int SMILEY = 2;
 
+HashMap<Integer, String> doodleElements;
+
 NeuralNetwork nn;
 
+int epochCounter;
+double lastTestResult;
+
 void setup() {
-  size(280, 280);
-  background(0);
+  size(560, 280);
+  background(255);
 
   loadData();
 
@@ -30,14 +36,50 @@ void setup() {
   prepareTrainingData();
   prepareTestingData();
 
+  doodleElements = new HashMap<Integer, String>();
+  fillMap();
+
   nn = new NeuralNetwork(784, 64, 3);
 
-  trainMultipleEpochs(5);
-  double percentage = testAll();
+  epochCounter = 0;
+  lastTestResult = 0;
+}
 
-  println("% correct: " + percentage);
+void draw() {
+  strokeWeight(8);
+  stroke(0);
+  if (mousePressed && mouseX < 280 && pmouseX < 280) {
+    line(pmouseX, pmouseY, mouseX, mouseY);
+  }
 
-  System.exit(0);
+  // Text/ right half of canvas
+  strokeWeight(0);
+  stroke(255);
+  rect(280, 0, 280, 280);
+  fill(255);
+  textSize(20);
+  text("Epoch: " + epochCounter, 300, 30);
+  text("Test result: " + nf((float)lastTestResult, 2, 2) + "%", 300, 70);
+  text("Guess: " + guessUserInput(), 300, 110);
+  fill(0);
+}
+
+void keyReleased() {
+  switch (key) {
+  case 'r':
+    // Training
+    trainOneEpoch();
+    break;
+  case 'e':
+    // Testing
+    double percentage = testAll();
+    lastTestResult = percentage;
+    break;
+  case 'd':
+    // Delete drawing
+    background(255);
+    break;
+  }
 }
 
 void loadData() {
@@ -73,7 +115,6 @@ void prepareTestingData() {
 void trainMultipleEpochs(int amount) {
   for (int i = 0; i < amount; i++) {
     trainOneEpoch();
-    println("Epoch: " + (i + 1));
   }
 }
 
@@ -87,6 +128,7 @@ void trainOneEpoch() {
 
     nn.train(inputs, targets);
   }
+  epochCounter ++;
 }
 
 double testAll() {
@@ -100,17 +142,45 @@ double testAll() {
 
     double[] guess = nn.guess(inputs);
     ArrayList<Double> result = new ArrayList<Double>();
-    for (int j = 0; j < guess.length; j++){
+    for (int j = 0; j < guess.length; j++) {
       result.add(guess[j]);
     }
-    
+
     double m = Collections.max(result);
     int index = result.indexOf(m);
-    
-    if(index == trainingData.get(i).label){
+
+    if (index == trainingData.get(i).label) {
       correctGuesses ++;
     }
   }
-  
+
   return (correctGuesses / testingData.size()) * 100;
+}
+
+String guessUserInput() {
+  double[] inputs = new double[784];
+  PImage img = get(0, 0, 280, 280);
+  img.resize(28, 28);
+  img.loadPixels();
+  for (int i = 0; i < img.pixels.length; i++) {
+    double value = (((double)(img.pixels[i]) / 16777216) * -1);
+    inputs[i] = value;
+  }
+  double[] guess = nn.guess(inputs);
+  ArrayList<Double> result = new ArrayList<Double>();
+  for (int j = 0; j < guess.length; j++) {
+    result.add(guess[j]);
+  }
+
+  double m = Collections.max(result);
+  int index = result.indexOf(m);
+
+  String classification = doodleElements.get(index);
+  return classification;
+}
+
+void fillMap() {
+  doodleElements.put(CAT, "Cat");
+  doodleElements.put(CLOUD, "Cloud");
+  doodleElements.put(SMILEY, "Smiley");
 }
