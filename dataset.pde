@@ -1,5 +1,6 @@
 class Dataset {
-  static final int DIMENSION = 784;
+  // Every image consists of 784 (28*28) pixels
+  static final int DOODLE_PIXELS = 784;
 
   Data[] trainingData;
   Data[] testingData; 
@@ -32,10 +33,10 @@ class Dataset {
   void prepareData(byte[] data) {
     int totalDataSize = sizeTrainingData + sizeTestingData;
     for (int i = 0; i < totalDataSize; i++) {
-      int offset = i * DIMENSION;
+      int offset = i * DOODLE_PIXELS;
 
-      byte[] element = new byte[DIMENSION];
-      for (int j = 0; j < DIMENSION; j++) {
+      byte[] element = new byte[DOODLE_PIXELS];
+      for (int j = 0; j < DOODLE_PIXELS; j++) {
         element[j] = data[j + offset];
       }
 

@@ -1,6 +1,17 @@
 import java.util.Collections;
 import java.util.*;
 
+// Every image consists of 784 (28*28) pixels
+static final int DOODLE_PIXELS = 784;
+static final int SIZE_TRAINING_DATA = 800;
+static final int SIZE_TESTING_DATA = 200;
+
+static final int CAT = 0;
+static final int CLOUD = 1;
+static final int SMILEY = 2;
+
+HashMap<Integer, String> doodleElements;
+
 byte[] catsData;
 byte[] cloudsData;
 byte[] smileysData;
@@ -12,12 +23,6 @@ Dataset smileys;
 ArrayList<Data> trainingData;
 ArrayList<Data> testingData;
 
-static final int CAT = 0;
-static final int CLOUD = 1;
-static final int SMILEY = 2;
-
-HashMap<Integer, String> doodleElements;
-
 NeuralNetwork nn;
 
 int epochCounter;
@@ -26,20 +31,20 @@ double lastTestResult;
 void setup() {
   size(560, 280);
   background(255);
-
+  
+  doodleElements = new HashMap<Integer, String>();
+  fillMap();
+  
   loadData();
 
-  cats = new Dataset(800, 200, catsData, CAT);
-  clouds = new Dataset(800, 200, cloudsData, CLOUD);
-  smileys = new Dataset(800, 200, smileysData, SMILEY);
+  cats = new Dataset(SIZE_TRAINING_DATA, SIZE_TESTING_DATA, catsData, CAT);
+  clouds = new Dataset(SIZE_TRAINING_DATA, SIZE_TESTING_DATA, cloudsData, CLOUD);
+  smileys = new Dataset(SIZE_TRAINING_DATA, SIZE_TESTING_DATA, smileysData, SMILEY);
 
   prepareTrainingData();
   prepareTestingData();
 
-  doodleElements = new HashMap<Integer, String>();
-  fillMap();
-
-  nn = new NeuralNetwork(784, 64, 3);
+  nn = new NeuralNetwork(DOODLE_PIXELS, 64, 3);
 
   epochCounter = 0;
   lastTestResult = 0;
@@ -76,7 +81,7 @@ void keyReleased() {
     lastTestResult = percentage;
     break;
   case 'd':
-    // Delete drawing
+    // Reset canvas
     background(255);
     break;
   }
@@ -91,7 +96,7 @@ void loadData() {
 void prepareTrainingData() {
   trainingData = new ArrayList<Data>();
 
-  for (int i = 0; i < 800; i++) {
+  for (int i = 0; i < SIZE_TRAINING_DATA; i++) {
     trainingData.add(cats.trainingData[i]);
     trainingData.add(clouds.trainingData[i]);
     trainingData.add(smileys.trainingData[i]);
@@ -101,9 +106,9 @@ void prepareTrainingData() {
 }
 
 void prepareTestingData() {
-  testingData  = new ArrayList<Data>();
+  testingData = new ArrayList<Data>();
 
-  for (int i = 0; i < 200; i++) {
+  for (int i = 0; i < SIZE_TESTING_DATA; i++) {
     testingData.add(cats.testingData[i]);
     testingData.add(clouds.testingData[i]);
     testingData.add(smileys.testingData[i]);
@@ -120,7 +125,7 @@ void trainMultipleEpochs(int amount) {
 
 void trainOneEpoch() {
   for (int i = 0; i < trainingData.size(); i++) {
-    double[] inputs = new double[784];
+    double[] inputs = new double[DOODLE_PIXELS];
     for (int j = 0; j < inputs.length; j++) {
       inputs[j] = ((double)(trainingData.get(i).data[j] & 0xFF)) / 255;
     }
@@ -128,14 +133,14 @@ void trainOneEpoch() {
 
     nn.train(inputs, targets);
   }
-  epochCounter ++;
+  epochCounter++;
 }
 
 double testAll() {
   double correctGuesses = 0;
 
   for (int i = 0; i < testingData.size(); i++) {
-    double[] inputs = new double[784];
+    double[] inputs = new double[DOODLE_PIXELS];
     for (int j = 0; j < inputs.length; j++) {
       inputs[j] = ((double)(trainingData.get(i).data[j] & 0xFF)) / 255;
     }
@@ -150,7 +155,7 @@ double testAll() {
     int index = result.indexOf(m);
 
     if (index == trainingData.get(i).label) {
-      correctGuesses ++;
+      correctGuesses++;
     }
   }
 
@@ -158,7 +163,7 @@ double testAll() {
 }
 
 String guessUserInput() {
-  double[] inputs = new double[784];
+  double[] inputs = new double[DOODLE_PIXELS];
   PImage img = get(0, 0, 280, 280);
   img.resize(28, 28);
   img.loadPixels();
