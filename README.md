@@ -1,5 +1,5 @@
 # Doodle classifier
-This is an example of how the [Basic Neural Network Library](https://github.com/kim-marcel/basic_neural_network) can be used.
+This is an example of how the [Basic Neural Network Library](https://github.com/kim-marcel/basic_neural_network) can be used. This example uses version [v0.2.1](https://github.com/kim-marcel/basic_neural_network/releases/download/v0.2.1/basic_neural_network-v0.2.1.jar).
 
 The Neural Network can be trained and tested with a given dataset consisting of images of cats, clouds and smileys from the [Google Quick Draw](https://quickdraw.withgoogle.com) dataset. After enough training it should be possible to classify your own drawings correctly.
 
